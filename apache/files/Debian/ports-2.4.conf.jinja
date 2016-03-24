@@ -4,6 +4,7 @@
 
 {% if salt['pillar.get']('apache:sites') is mapping %}
     {%- set listen_directives = [] %}
+    {%- set name_virtual_host_directives = [] %}
     {%- for id, site in salt['pillar.get']('apache:sites').items() %}
         {%- set interfaces = site.get('interface', '*').split() %}
         {%- set port = site.get('port', 80) %}
@@ -11,11 +12,16 @@
             {%- set listen_directive = interface ~ ':' ~ port %}
             {%- if listen_directive not in listen_directives %}
                 {%- do listen_directives.append(listen_directive) %}
+            {%- else %}
+                {%- do name_virtual_host_directives.append(listen_directive) %}
             {%- endif %}
         {%- endfor %}
     {%- endfor %}
     {%- for listen in listen_directives %}
 Listen  {{ listen }}
+    {%- endfor %}
+    {%- for name_virtual_host in name_virtual_host_directives %}
+NameVirtualHost  {{ name_virtual_host }}
     {%- endfor %}
 {%- else %}
 Listen 80
